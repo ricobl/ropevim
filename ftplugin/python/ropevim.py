@@ -3,15 +3,19 @@ import os
 import tempfile
 import re
 
+import logging
+
 import ropemode.decorators
 import ropemode.environment
 import ropemode.interface
 
 import vim
 
+#Initialize loggin module
+LOG_FILENAME = 'debug.log'
+logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
 
 class VimUtils(ropemode.environment.Environment):
-
     def ask(self, prompt, default=None, starting=None):
         if starting is None:
             starting = ''
@@ -24,14 +28,24 @@ class VimUtils(ropemode.environment.Environment):
 
     def ask_values(self, prompt, values, default=None,
                    starting=None, show_values=None):
+        logging.debug("VimUtils: ask_values")
+        logging.debug("prompt: %s", prompt)
+        logging.debug("values: %s", values)
+        logging.debug("default: %s", default)
+        logging.debug("starting: %s", starting)
+        logging.debug("show_values: %s", show_values)
         if show_values or (show_values is None and len(values) < 14):
             self._print_values(values)
         if default is not None:
             prompt = prompt + ('[%s] ' % default)
         starting = starting or ''
+        logging.debug("setting the values")
         _completer.values = values
+        logging.debug("calling the RopeValueCompleter")
         answer = call('input("%s", "%s", "customlist,RopeValueCompleter")' %
                       (prompt, starting))
+        logging.debug("after RopeValueCompleter")
+        logging.debug("answer: %s", answer)
         if answer is None:
             if 'cancel' in values:
                 return 'cancel'
@@ -52,6 +66,8 @@ class VimUtils(ropemode.environment.Environment):
         return call('input("%s", ".", "dir")' % prompt)
 
     def ask_completion(self, prompt, values, starting=None):
+        logging.debug("ask_completion")
+        logging.debug(values)
         if self.get('vim_completion') and 'i' in call('mode()'):
             if not self.get('extended_complete', False):
                 proposals = u','.join(u"'%s'" % self._completion_text(proposal)
@@ -280,6 +296,8 @@ class VimUtils(ropemode.environment.Environment):
     def _extended_completion(self, proposal):
         # we are using extended complete and return dicts instead of strings.
         # `ci` means "completion item". see `:help complete-items`
+        logging.debug("_extended_completion")
+        logging.debug(proposal)
         ci = {'word': proposal.name}
 
         scope = proposal.scope[0].upper()
@@ -385,9 +403,22 @@ class _ValueCompleter(object):
                     'endfunction\n')
 
     def __call__(self, arg_lead, cmd_line, cursor_pos):
-        result = [proposal.name for proposal in self.values \
-                  if proposal.name.startswith(arg_lead)]
-        vim.command('let s:completions = %s' % result)
+        logging.debug("__call__ in _ValueCompleter")
+        logging.debug(cmd_line)
+        logging.debug(arg_lead)
+        logging.debug(cursor_pos)
+        logging.debug("values")
+        logging.debug(self.values)
+        #don't know if self.values can be 0 but better safe then sorry
+        if len(self.values) > 0:
+            if type(self.values[0]) != type('str'):
+                result = [proposal.name for proposal in self.values \
+                          if proposal.name.startswith(arg_lead)]
+                vim.command('let s:completions = %s' % result)
+            else:
+                result = [proposal for proposal in self.values \
+                        if proposal.startswith(arg_lead)]
+                vim.command('let s:completions = %s' % result)
 
 
 variables = {'ropevim_enable_autoimport': 1,
