@@ -13,7 +13,8 @@ import vim
 
 #Initialize loggin module
 LOG_FILENAME = 'debug.log'
-logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
+logging.disable(logging.DEBUG)
+#logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
 
 class VimUtils(ropemode.environment.Environment):
     def ask(self, prompt, default=None, starting=None):
