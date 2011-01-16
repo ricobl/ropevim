@@ -385,7 +385,7 @@ class _ValueCompleter(object):
     def __call__(self, arg_lead, cmd_line, cursor_pos):
         #don't know if self.values can be 0 but better safe then sorry
         if self.values:
-            if isinstance(self.values[0], basestring):
+            if not isinstance(self.values[0], basestring):
                 result = [proposal.name for proposal in self.values \
                           if proposal.name.startswith(arg_lead)]
                 vim.command('let s:completions = %s' % result)
