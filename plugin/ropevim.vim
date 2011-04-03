@@ -1,12 +1,12 @@
-function! LoadRope()
+function! LoadRope(current_path)
 python << EOF
 import sys
 import os
-module_path = os.path.expanduser("~/.vim/bundle/ropevim-pathogen/plugin")
-sys.path.append(".")
-sys.path.append(module_path)
+import vim
+sys.path.append(os.path.dirname(vim.eval("a:current_path")))
 import ropevim
 EOF
 endfunction
 
-call LoadRope()
+let current_path = expand("<sfile>")
+call LoadRope(current_path)
